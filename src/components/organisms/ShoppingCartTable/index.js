@@ -22,7 +22,7 @@ class ShoppingCartTable extends React.Component {
       var count = 0
       var amount = 0
       if (!keys || !keys.length) {
-        return {count: count, amount: amount, discount: null}
+        return {count: count, amount: amount, discount: null, discount2: false}
       }
       const mediaCounter = {}
       mediaTypes.map(media => {
@@ -46,9 +46,9 @@ class ShoppingCartTable extends React.Component {
         }
       })
       console.log(mediaCounter)
-      return {count: count, amount: amount, discount: mediaCounter}
+      return {count: count, amount: amount, discount: mediaCounter, discount2: count >= blockCopy.discountThreshold2}
     }
-    var {count, amount, discount} = calculateTotal()
+    var {count, amount, discount, discount2} = calculateTotal()
     const generateComponent = movieId => (
       this.props.movies[movieId].medias.map(mediaId => {
         if (this.props.moviesSelected && this.props.moviesSelected[movieId] && this.props.moviesSelected[movieId][this.props.media[mediaId].type]) {
@@ -92,23 +92,33 @@ class ShoppingCartTable extends React.Component {
             if (discount[type].discount) {
               amount -= discount[type].discount
               return (
-                <div className="row">
+                <div key={`discount${mediaId}`} className="row">
                   <div className="col-10 text-right">
                     <h4> { `${blockCopy.discountText} ${type}` } </h4>
                   </div>
                   <div className="col-2 text-right" style={{color: 'red'}}>
-                    <h4> {`-$${discount[type].discount}`} </h4>
+                    <h4> {`-$${discount[type].discount | 0}`} </h4>
                   </div>
                 </div>
               )
             }
           }) : null}
+          { discount2 ? (
+            <div className="row">
+              <div className="col-10 text-right">
+                <h4> { `${blockCopy.discountText2}` } </h4>
+              </div>
+              <div className="col-2 text-right" style={{color: 'red'}}>
+                <h4> {`-$${(amount * .05) | 0}`} </h4>
+              </div>
+            </div>
+            ) : null}
           <div className="row">
             <div className="col-10 text-right">
               <h4> {blockCopy.endText2} </h4>
             </div>
             <div className="col-2 text-right">
-              <h4> {`$${amount}`} </h4>
+              <h4> {`$${(discount2 ? amount * .95 : amount) | 0}`} </h4>
             </div>
           </div>
           <div className="row">
@@ -131,7 +141,9 @@ const blockCopy = {
   endText1: "Number Items in Cart: ",
   endButton: "CheckOut",
   discountThreshold: 3,
-  discountText: "(One-Time) 10% off for purchasing (3) types of"
+  discountThreshold2: 100,
+  discountText: "(One-Time) 10% off for purchasing (3) types of",
+  discountText2: "purchasing over 100 items"
 }
 
 ShoppingCartTable.propTypes = {
